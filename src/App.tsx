@@ -14,7 +14,7 @@ export default function App() {
   const [pageDisplay, setPageDisplay] = useState<number>(1);
   const [pageShow, setPageShow] = useState<number>(1);
   const [gameReset, setGameReset] = useState<boolean>(false);
-  const [board, setBoard] = useState<number[][]>(createMatrix(5, 5));
+  // const [board, setBoard] = useState<number[][]>(createMatrix(5, 5));
   const [players, setPlayers] = useState<Player[]>(playerGenerator(2));
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function App() {
             <Game
               gameReset={gameReset}
               setGameReset={setGameReset}
-              board={board}
+              board={createMatrix(5, 5)}
               players={players}
               setPlayers={setPlayers}
             />
