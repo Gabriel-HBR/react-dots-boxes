@@ -28,16 +28,16 @@ export default function App() {
   }
 
   return (<>
-    <div className={`${isDarkMode ? "dark" : ""} background overflow-auto`}>
-      <div className="content h-screen w-fit">
-        <div className="w-screen sticky top-0 left-0 menu">
-          <Menu
-            isDarkMode={isDarkMode}
-            setIsDarkMode={setIsDarkMode}
-            pageShow={pageShow}
-            setPageShow={setPageShow} 
-          />
-        </div>
+    <div className={`${isDarkMode ? "dark" : ""} background overflow-auto h-screen`}>
+      <div className=" sticky top-0 left-0 menu">
+        <Menu
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+          pageShow={pageShow}
+          setPageShow={setPageShow} 
+        />
+      </div>
+      <div className="content">
         <div className="pages">
           <div className={((pageShow==1) ? "show ":"")+((pageDisplay!=1) ? "hide " : "")}>
             <Game

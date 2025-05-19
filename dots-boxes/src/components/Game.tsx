@@ -29,7 +29,7 @@ export default function Game(
     <>
       <div className="flex p-4">
         <div className="flex-1">
-          <div className="sticky inline-block top-20 px-4 py-3 min-w-[160px] card">
+          <div className="sticky inline-block top-38 sm:top-24 px-4 py-3 min-w-[160px] card">
             <ScoreBoard
               players={players} 
               playerTurn={playerTurn}

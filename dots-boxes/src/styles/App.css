@@ -1,5 +1,5 @@
 .menu{
-    /* background-color: var(--page-bg-color); */
+    background-color: var(--page-bg-color);
     z-index: 10;
 }
 
@@ -43,8 +43,16 @@
 .content{
   margin: 0 auto;
 }
+
+.pages{
+  min-width: auto;
+}
+
+/* This is a media query for monitor */
 @media only screen and (min-width: 896px) {
-  .content{
+  .pages{
+    width: fit-content;
     min-width: 896px;
+    margin: 0 auto;
   }
 }
