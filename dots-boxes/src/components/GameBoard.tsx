@@ -51,7 +51,7 @@ export default function GameBoard({
 
   // Function to handle the click on the game board
   const handleClick = (row: number, col: number) => {
-    // Update the game board with the current player's symbol
+    // Update the gameboard
     const newBoard: number[][] = [...board];
     newBoard[row][col] = playerTurn + 1;
     setBoard(newBoard);
@@ -191,7 +191,7 @@ export default function GameBoard({
                     board[j * 2 + 1][i * 2 + 1] > 0
                       ? "var(--player" + board[j * 2 + 1][i * 2 + 1] +"-color)"
                       : board[j * 2 + 1][i * 2 + 1] == 0? "transparent" : "var(--game-box-disabled-color)",
-                }} // Make sure it doesn't block line clicks
+                }}
               />
             }
           </React.Fragment>
@@ -271,7 +271,7 @@ export default function GameBoard({
                 board[j * 2][i * 2 + 1] > 0
                   ? "var(--player" + board[j * 2][i * 2 + 1] + "-color)"
                   : "var(--game-color)"
-              } // Dark Blue
+              }
               strokeWidth="var(--game-line-width)"
               className={board[j * 2][i * 2 + 1] === 0 ? "dotted-line" : ""}
             />
@@ -283,10 +283,10 @@ export default function GameBoard({
                   fill: "var(--player" + (playerTurn + 1) + "-color)",
                 }}
                 onClick={() => {
-                  /*alert(playerTurn);*/ handleClick(
+                  handleClick(
                     j * 2,
                     i * 2 + 1
-                  ); /*alert((j*2+1) + ", "+ (i*2))*/
+                  );
                 }}
               />
             )}
