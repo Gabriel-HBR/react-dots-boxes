@@ -1,4 +1,4 @@
-// import Menu from "./components/Menu";
+import Menu from "./components/Menu";
 // import Game from "./components/Game";
 import Settings from "./components/Settings";
 import "./styles/App.css";
@@ -31,12 +31,12 @@ export default function App() {
     <div className={`${isDarkMode ? "dark" : ""} background overflow-auto`}>
       <div className="content h-screen w-fit">
         <div className="w-screen sticky top-0 left-0 menu">
-          {/* <Menu
+          <Menu
             isDarkMode={isDarkMode}
             setIsDarkMode={setIsDarkMode}
             pageShow={pageShow}
             setPageShow={setPageShow} 
-          /> */}
+          />
         </div>
         <div className="pages">
           <div className={((pageShow==1) ? "show ":"")+((pageDisplay!=1) ? "hide " : "")}>
