@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Teko:wght@300..700&display=swap');
+@import "tailwindcss";
+
+@layer base{
+    :root {
+        /*players*/
+        --player1-color: #65aedb;
+        --player2-color: #7cdf52;
+        --player3-color: #ff595e;
+        --player4-color: #ffbd3a;
+        --player5-color: #fffc61;
+        --player6-color: #a574e9;
+
+        /*page*/
+        --page-color: #000;
+        --page-bg-color: #f8f1f1;
+        --page-primary-color: #ebe4e4;
+        --page-secondary-color: #b2b0b0;
+        --shadow-color: #4d4d4d;
+
+        /*game*/
+        --game-box-filter: opacity(0.6);
+        --game-dot-stroke-width: 4;
+        --game-line-width: 4;
+        --game-rhombus-stroke-width: 4;
+        --game-color: #666;
+        --game-box-disabled-color: none;
+        
+        /*animation*/
+        --animation-duration: 0.2s;
+    }
+    .dark{
+        /*players*/
+        --player1-color: #1982c4;
+        --player2-color: #639d05;
+        --player3-color: #dc3036;
+        --player4-color: #df7d1b;
+        --player5-color: #cfc100;
+        --player6-color: #6a4c93;
+
+        /*page*/
+        --page-color: #eaeaea;
+        --page-bg-color: #111;
+        --page-primary-color: #2d2a2a;
+        --page-secondary-color: #7e7c7c;
+        --shadow-color: #111;
+
+        /*game*/
+        --game-color: #eaeaea;
+        --game-box-disabled-color: none;
+    }
+}
+
+
+html, body{
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+}
+
+.button, .x-button, .card, .background, .menu, .dot, .line, .rhombus, .box{
+    transition-duration: var(--animation-duration);
+}
+
+.background{
+    background-color: var(--page-bg-color);
+    color: var(--page-color);
+}
+
+
+.card{
+    background-color: var(--page-primary-color);
+    border-radius: 15px;
+}
+
+.button{
+    background-color: var(--page-primary-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition-property: opacity, background-color;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+.button:hover {
+    background-color: var(--page-secondary-color);
+}
+
+.x-button{
+    transform: translate(-2px, -2px);
+    box-shadow:2px 2px 1px 1px var(--shadow-color);
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+.x-button:hover {
+    transform: translate(-4px, -4px);
+    box-shadow:4px 4px 1px 1px var(--shadow-color);
+    
+}
+
+.x-button:active {
+    transform: translate(0px, 0px);
+    box-shadow:0 0 0px 0px var(--shadow-color);
+}

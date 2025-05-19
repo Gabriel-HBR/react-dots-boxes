@@ -1,0 +1,50 @@
+.menu{
+    /* background-color: var(--page-bg-color); */
+    z-index: 10;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    display: none;
+  }
+  100% {
+    opacity: 1;
+    display: block;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    display: block;
+  }
+  100% {
+    opacity: 0;
+    display: none;
+  }
+}
+
+.pages > div{
+  display: block;
+  animation: fadeOut 0.5s forwards;
+}
+
+.pages > div.show {
+  display: block;
+  animation: fadeIn 0.5s forwards;
+}
+
+.pages > div.hide {
+  display: none;
+  opacity: 0;
+}
+
+.content{
+  margin: 0 auto;
+}
+@media only screen and (min-width: 896px) {
+  .content{
+    min-width: 896px;
+  }
+}
