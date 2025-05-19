@@ -122,7 +122,6 @@ export function isEven(num: number): boolean {
   return num % 2 === 0;
 }
 
-// If you want to export playerGenerator, import Player type in this file and export the function as well.
 import { Player } from "../types/PlayerType";
 export function playerGenerator(playerCount: number): Player[] {
   const players: Player[] = [];
