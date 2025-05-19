@@ -8,5 +8,5 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  base: '/react-dots-boxes/',
+  base: '/react-dots-boxes',
 })
