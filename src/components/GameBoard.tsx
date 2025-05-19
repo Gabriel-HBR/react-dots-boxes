@@ -8,20 +8,20 @@ export default function GameBoard({
   gameBoard,
   players,
   setPlayers,
-  setGameOver,
+  // setGameOver,
   gameReset,
   playerTurn,
   setPlayerTurn,
-  setWinners,
+  // setWinners,
 }: {
   gameBoard: number[][];
   players: Player[];
   setPlayers: (newPlayers: Player[]) => void;
-  setGameOver: (isGameOver: boolean) => void;
+  // setGameOver: (isGameOver: boolean) => void;
   gameReset: boolean;
   playerTurn: number;
   setPlayerTurn: (newPlayerTurn: number) => void;
-  setWinners: (winner: number[] | undefined) => void;
+  // setWinners: (winner: number[] | undefined) => void;
 }) {
   const [board, setBoard] = useState<number[][]>(gameBoard.map((row) => [...row]));
 
@@ -38,7 +38,7 @@ export default function GameBoard({
     height = (board.length + 1) / 2;
     width = (board[0].length + 1) / 2;
     playersActive = players.length;
-    setWinners(undefined);
+    // setWinners(undefined);
     setPlayerTurn(0);
     let resetPlayers: Player[] = [...players];
     resetPlayers.forEach((player) => {
@@ -46,7 +46,7 @@ export default function GameBoard({
     });
     setPlayers(resetPlayers);
     setBoard(gameBoard.map((row) => [...row]));
-    setGameOver(false);
+    // setGameOver(false);
   };
 
   // Function to handle the click on the game board
@@ -68,31 +68,31 @@ export default function GameBoard({
       setPlayerTurn((playerTurn + 1) % playersActive);
     }
 
-    setWinners(checkWinners());
+    // setWinners(checkWinners());
 
 
     // Is GameOver
     if (checkGameOver()) {
       console.log("Game Over");
-      setGameOver(true);
+      // setGameOver(true);
     }
   };
 
-  const checkWinners = (): number[] => {
-    let maxPoints: number = -1;
-    for (let i = 0; i < playersActive; i++) {
-      if (players[i].points > maxPoints) {
-        maxPoints = players[i].points;
-      }
-    }
-    let winners: number[] = [];
-    for (let i = 0; i < playersActive; i++) {
-      if (players[i].points === maxPoints) {
-        winners.push(i);
-      }
-    }
-    return winners;
-  };
+  // const checkWinners = (): number[] => {
+  //   let maxPoints: number = -1;
+  //   for (let i = 0; i < playersActive; i++) {
+  //     if (players[i].points > maxPoints) {
+  //       maxPoints = players[i].points;
+  //     }
+  //   }
+  //   let winners: number[] = [];
+  //   for (let i = 0; i < playersActive; i++) {
+  //     if (players[i].points === maxPoints) {
+  //       winners.push(i);
+  //     }
+  //   }
+  //   return winners;
+  // };
 
   const checkPoints = (row: number, col: number): number => {
     const maxRow: number = board.length - 1;

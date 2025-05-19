@@ -21,9 +21,9 @@ export default function Game(
 }
 ) {
 
-  const [gameOver, setGameOver] = useState<boolean>(false);
+  // const [gameOver, setGameOver] = useState<boolean>(false);
   const [playerTurn, setPlayerTurn] = useState<number>(0);
-  const [winners, setWinners] = useState<number[]|undefined>(undefined);
+  // const [winners, setWinners] = useState<number[]|undefined>(undefined);
 
   return (
     <>
@@ -45,11 +45,11 @@ export default function Game(
                 gameBoard={board}
                 players={players}
                 setPlayers={setPlayers}
-                setGameOver={setGameOver}
+                // setGameOver={setGameOver}
                 gameReset={gameReset}
                 playerTurn={playerTurn}
                 setPlayerTurn={setPlayerTurn}
-                setWinners={setWinners}
+                // setWinners={setWinners}
               />
             </div>
           </div>
