@@ -1,11 +1,12 @@
 import Menu from "./components/Menu";
-// import Game from "./components/Game";
+import Game from "./components/Game";
 import Settings from "./components/Settings";
 import "./styles/App.css";
 
-// import { Player } from "./types/PlayerType";
+import { Player } from "./types/PlayerType";
 // import { playerGenerator } from "./utils/gameUtils";
 // import { createMatrix } from "./utils/gameUtils";
+import { playerDefault, boardDefault } from "./utils/gamePresets";
 
 import { useState, useEffect } from "react";
 
@@ -13,9 +14,9 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [pageDisplay, setPageDisplay] = useState<number>(1);
   const [pageShow, setPageShow] = useState<number>(1);
-  // const [gameReset, setGameReset] = useState<boolean>(false);
-  // const [board, setBoard] = useState<number[][]>(createMatrix(4,4));
-  // const [players, setPlayers] = useState<Player[]>(playerGenerator(2));
+  const [gameReset, setGameReset] = useState<boolean>(false);
+  const [board, setBoard] = useState<number[][]>(boardDefault);
+  const [players, setPlayers] = useState<Player[]>(playerDefault);
 
   useEffect(() => {
     hideDiv();
@@ -40,13 +41,13 @@ export default function App() {
         </div>
         <div className="pages">
           <div className={((pageShow==1) ? "show ":"")+((pageDisplay!=1) ? "hide " : "")}>
-            {/* <Game
+            <Game
               gameReset={gameReset}
               setGameReset={setGameReset}
               board={board}
               players={players}
               setPlayers={setPlayers}
-            /> */}
+            />
           </div>
           <div className={((pageShow==2) ? "show ":"")+((pageDisplay!=2) ? "hide " : "")}>
             <Settings

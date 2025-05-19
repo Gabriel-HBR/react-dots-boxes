@@ -1,0 +1,26 @@
+.dot{
+    fill: var(--game-color);
+    stroke: var(--page-primary-color);
+    stroke-width: var(--game-dot-stroke-width);
+}
+
+.dotted-line {
+    stroke-dasharray: 0, 11, 6;
+}
+
+.rhombus {
+    fill-opacity: 0;
+    cursor: "pointer";
+    filter: var(--game-rhombus-filter);
+    stroke-width: var(--game-rhombus-stroke-width);
+}
+
+.rhombus:hover {
+    stroke: var(--card-bg-color);
+    fill-opacity: 1;
+}
+
+.box {
+    pointer-events: 'none';
+    filter: var(--game-box-filter);
+}

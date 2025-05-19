@@ -27,22 +27,21 @@ export default function Game(
 
   return (
     <>
-      {/*fazer o menu sumir/board aparecer com isGameStarted*/}
       <div className="flex p-4">
         <div className="flex-1">
           <div className="sticky inline-block top-20 px-4 py-3 min-w-[160px] card">
             <ScoreBoard
-            players={players} 
-            playerTurn={playerTurn}
-            setGameReset={setGameReset}
-            gameReset={gameReset}
+              players={players} 
+              playerTurn={playerTurn}
+              setGameReset={setGameReset}
+              gameReset={gameReset}
             />
           </div>
         </div>
         <div className="shrink-0">
           <div className="flex justify-self-center">
             <div className="mx-4 card p-3">
-              {/* <GameBoard
+              <GameBoard
                 gameBoard={board}
                 players={players}
                 setPlayers={setPlayers}
@@ -51,7 +50,7 @@ export default function Game(
                 playerTurn={playerTurn}
                 setPlayerTurn={setPlayerTurn}
                 setWinners={setWinners}
-              /> */}
+              />
             </div>
           </div>
         </div>
