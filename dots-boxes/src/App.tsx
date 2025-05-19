@@ -4,9 +4,8 @@ import Settings from "./components/Settings";
 import "./styles/App.css";
 
 import { Player } from "./types/PlayerType";
-// import { playerGenerator } from "./utils/gameUtils";
-// import { createMatrix } from "./utils/gameUtils";
-import { playerDefault, boardDefault } from "./utils/gamePresets";
+import { playerGenerator } from "./utils/gameUtils";
+import { createMatrix } from "./utils/gameUtils";
 
 import { useState, useEffect } from "react";
 
@@ -15,8 +14,8 @@ export default function App() {
   const [pageDisplay, setPageDisplay] = useState<number>(1);
   const [pageShow, setPageShow] = useState<number>(1);
   const [gameReset, setGameReset] = useState<boolean>(false);
-  const [board, setBoard] = useState<number[][]>(boardDefault);
-  const [players, setPlayers] = useState<Player[]>(playerDefault);
+  const [board, setBoard] = useState<number[][]>(createMatrix(5, 5));
+  const [players, setPlayers] = useState<Player[]>(playerGenerator(2));
 
   useEffect(() => {
     hideDiv();
