@@ -1,35 +1,62 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// import Menu from "./components/Menu";
+// import Game from "./components/Game";
+import Settings from "./components/Settings";
+import "./styles/App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+// import { Player } from "./types/PlayerType";
+// import { playerGenerator } from "./utils/gameUtils";
+// import { createMatrix } from "./utils/gameUtils";
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+import { useState, useEffect } from "react";
+
+export default function App() {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [pageDisplay, setPageDisplay] = useState<number>(1);
+  const [pageShow, setPageShow] = useState<number>(1);
+  // const [gameReset, setGameReset] = useState<boolean>(false);
+  // const [board, setBoard] = useState<number[][]>(createMatrix(4,4));
+  // const [players, setPlayers] = useState<Player[]>(playerGenerator(2));
+
+  useEffect(() => {
+    hideDiv();
+  }, [pageShow]);
+
+  const hideDiv = () => {
+    setTimeout(() => {
+      setPageDisplay(pageShow);
+    }, 250);
+  }
+
+  return (<>
+    <div className={`${isDarkMode ? "dark" : ""} background overflow-auto`}>
+      <div className="content h-screen w-fit">
+        <div className="w-screen sticky top-0 left-0 menu">
+          {/* <Menu
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
+            pageShow={pageShow}
+            setPageShow={setPageShow} 
+          /> */}
+        </div>
+        <div className="pages">
+          <div className={((pageShow==1) ? "show ":"")+((pageDisplay!=1) ? "hide " : "")}>
+            {/* <Game
+              gameReset={gameReset}
+              setGameReset={setGameReset}
+              board={board}
+              players={players}
+              setPlayers={setPlayers}
+            /> */}
+          </div>
+          <div className={((pageShow==2) ? "show ":"")+((pageDisplay!=2) ? "hide " : "")}>
+            <Settings
+              // Players={players}
+              // setPlayers={setPlayers}
+              // setBoard={setBoard}
+            />
+          </div>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  </>);
 }
-
-export default App
