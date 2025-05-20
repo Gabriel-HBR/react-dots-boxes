@@ -1,8 +1,3 @@
-.menu{
-    background-color: var(--page-bg-color);
-    z-index: 10;
-}
-
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -36,6 +31,7 @@
 }
 
 .pages > div.hide {
+  
   display: none;
   opacity: 0;
 }
@@ -47,6 +43,11 @@
 
 .pages{
   min-width: auto;
+}
+
+.menu{
+    background-color: var(--page-bg-color);
+    z-index: 10;
 }
 
 /* This is a media query for monitor */

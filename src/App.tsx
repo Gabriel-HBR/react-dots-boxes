@@ -27,30 +27,32 @@ export default function App() {
   }
 
   return (<>
-    <div id="background" className="overflow-auto">
-      <div className=" sticky top-0 left-0 menu">
-        <Menu
-          pageShow={pageShow}
-          setPageShow={setPageShow} 
-        />
-      </div>
-      <div className="content">
-        <div className="pages">
-          <div className={((pageShow==1) ? "show ":"")+((pageDisplay!=1) ? "hide " : "")}>
-            <Game
-              gameReset={gameReset}
-              setGameReset={setGameReset}
-              board={createMatrix(5, 5)}
-              players={players}
-              setPlayers={setPlayers}
-            />
-          </div>
-          <div className={((pageShow==2) ? "show ":"")+((pageDisplay!=2) ? "hide " : "")}>
-            <Settings
-              // Players={players}
-              // setPlayers={setPlayers}
-              // setBoard={setBoard}
-            />
+    <div className="background">
+      <div className="h-full overflow-auto overscroll-none">
+        <div className=" sticky top-0 left-0 menu">
+          <Menu
+            pageShow={pageShow}
+            setPageShow={setPageShow} 
+          />
+        </div>
+        <div className="content">
+          <div className="pages">
+            <div className={((pageShow==1) ? "show ":"")+((pageDisplay!=1) ? "hide " : "")}>
+              <Game
+                gameReset={gameReset}
+                setGameReset={setGameReset}
+                board={createMatrix(5, 5)}
+                players={players}
+                setPlayers={setPlayers}
+              />
+            </div>
+            <div className={((pageShow==2) ? "show ":"")+((pageDisplay!=2) ? "hide " : "")}>
+              <Settings
+                // Players={players}
+                // setPlayers={setPlayers}
+                // setBoard={setBoard}
+              />
+            </div>
           </div>
         </div>
       </div>

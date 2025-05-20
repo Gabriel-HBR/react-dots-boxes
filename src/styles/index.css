@@ -19,7 +19,7 @@
         --shadow-color: #4d4d4d;
 
         /*game*/
-        --game-box-filter: opacity(0.6);
+        --game-box-opacity: 0.6;
         --game-dot-stroke-width: 4;
         --game-line-width: 4;
         --game-rhombus-stroke-width: 4;
@@ -51,23 +51,32 @@
     }
 }
 
-
-html, body, #root, #background {
+html, body {
     font-family: 'Orbitron', sans-serif;
     font-weight: 600;
+}
+
+html, body, #root, .background{
     height: 100vh;
     height: 100dvh;
     width: 100vw;
-    width: 100lvw;
 }
 
-#background, .button, .x-button, .card, .menu, .dot, .line, .rhombus, .box{
-    transition-duration: var(--animation-duration);
-}
-
-#background{
+body{
     background-color: var(--page-bg-color);
-    color: var(--page-color);
+    color: var(--page-color)
+}
+
+.background{
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    /* padding-bottom: env(safe-area-inset-bottom); */
+    padding-left: env(safe-area-inset-left);
+}
+
+body,.card, .menu, .button, .x-button, .box, .dot, .line, .rhombus{
+    transition-duration: var(--animation-duration);
+    transition-property: background-color, display, margin, transform, box-shadow, stroke, fill, fill-opacity;
 }
 
 .card{
@@ -79,7 +88,6 @@ html, body, #root, #background {
     background-color: var(--page-primary-color);
     border-radius: 8px;
     cursor: pointer;
-    transition-property: opacity, background-color;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */

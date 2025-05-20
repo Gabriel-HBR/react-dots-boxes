@@ -22,5 +22,5 @@
 
 .box {
     pointer-events: 'none';
-    filter: var(--game-box-filter);
+    fill-opacity: var(--game-box-opacity);
 }
