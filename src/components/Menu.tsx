@@ -1,14 +1,35 @@
+import { useEffect, useState } from "react";
+
 export default function Menu({
-  isDarkMode,
-  setIsDarkMode,
   pageShow,
   setPageShow,
 }: {
-  isDarkMode: boolean;
-  setIsDarkMode: (isDarkMode: boolean) => void;
   pageShow: number;
   setPageShow: (pageShow: number) => void;
 }) {
+
+  const [theme, setTheme] = useState('light');
+
+  const toggleTheme = () => {
+    console.log("Toggle theme");
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+
+    localStorage.setItem('@dark-mode-react-tailwind:theme-1.0.0', newTheme);
+    setTheme(newTheme);
+
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
+
+  useEffect(() => {
+    const themeFromLocalStorage = 
+      localStorage.getItem('@dark-mode-react-tailwind:theme-1.0.0');
+
+    if (themeFromLocalStorage) {
+      setTheme(themeFromLocalStorage);
+      document.documentElement.classList.toggle('dark', themeFromLocalStorage === 'dark');
+    }
+  }, []);
+
   return (
     <div className="p-4 mx-auto flex sm:flex-row items-center gap-4 flex-col items-stretch max-w-4xl">
       <div className="flex flex-1 justify-center sm:justify-start">
@@ -23,9 +44,9 @@ export default function Menu({
         </div>
         <div
           className="inline-block p-2 button"
-          onClick={() => setIsDarkMode(!isDarkMode)}
+          onClick={() => toggleTheme()}
         >
-          {isDarkMode ? "Light Mode" : "Dark Mode"}
+          {theme === 'dark' ? "Light Mode" : "Dark Mode"}
         </div>
       </div>
     </div>

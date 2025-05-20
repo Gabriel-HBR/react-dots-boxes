@@ -52,21 +52,20 @@
 }
 
 
-html, body{
+html, body, #root, #background {
     font-family: 'Orbitron', sans-serif;
     font-weight: 600;
     height: 100vh;
     height: 100dvh;
     width: 100vw;
     width: 100lvw;
-    background-color: #639d05;
 }
 
-.button, .x-button, .card, .background, .menu, .dot, .line, .rhombus, .box{
+#background, .button, .x-button, .card, .menu, .dot, .line, .rhombus, .box{
     transition-duration: var(--animation-duration);
 }
 
-.background{
+#background{
     background-color: var(--page-bg-color);
     color: var(--page-color);
 }
