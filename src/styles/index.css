@@ -99,7 +99,7 @@ body,.card, .menu, .button, .x-button, .box, .dot, .line, .rhombus{
 
 .x-button{
     transform: translate(-2px, -2px);
-    box-shadow:2px 2px 1px 1px var(--shadow-color);
+    box-shadow:2px 2px 0px 0px var(--shadow-color);
     border-radius: 8px;
     cursor: pointer;
     -webkit-user-select: none; /* Safari */
@@ -109,7 +109,7 @@ body,.card, .menu, .button, .x-button, .box, .dot, .line, .rhombus{
 
 .x-button:hover {
     transform: translate(-4px, -4px);
-    box-shadow:4px 4px 1px 1px var(--shadow-color);
+    box-shadow:4px 4px 0px 0px var(--shadow-color);
     
 }
 
