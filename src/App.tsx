@@ -13,7 +13,7 @@ export default function App() {
   const [pageDisplay, setPageDisplay] = useState<number>(1);
   const [pageShow, setPageShow] = useState<number>(1);
   const [gameReset, setGameReset] = useState<boolean>(false);
-  // const [board, setBoard] = useState<number[][]>(createMatrix(5, 5));
+  const [board, setBoard] = useState<number[][]>(createMatrix(5, 5));
   const [players, setPlayers] = useState<Player[]>(playerGenerator(2));
 
   useEffect(() => {
@@ -48,9 +48,12 @@ export default function App() {
             </div>
             <div className={((pageShow==2) ? "show ":"")+((pageDisplay!=2) ? "hide " : "")}>
               <Settings
-                // Players={players}
-                // setPlayers={setPlayers}
-                // setBoard={setBoard}
+                gameReset={gameReset}
+                setGameReset={setGameReset}
+                players={players}
+                setPlayers={setPlayers}
+                setBoard={setBoard}
+                setPageShow={setPageShow}
               />
             </div>
           </div>
