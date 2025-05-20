@@ -10,7 +10,6 @@ import { createMatrix } from "./utils/gameUtils";
 import { useState, useEffect } from "react";
 
 export default function App() {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [pageDisplay, setPageDisplay] = useState<number>(1);
   const [pageShow, setPageShow] = useState<number>(1);
   const [gameReset, setGameReset] = useState<boolean>(false);
