@@ -11,14 +11,14 @@ export default function Settings(
     setGameReset,
     players,
     setPlayers,
-    setBoard,
+    // setBoard,
     setPageShow,
   }:{
     gameReset: boolean;
     setGameReset: (gameReset: boolean) => void;
     players: Player[];
     setPlayers: (players: Player[]) => void;
-    setBoard: (board: number[][]) => void;
+    // setBoard: (board: number[][]) => void;
     setPageShow: (pageShow: number) => void;
   }
 ) {
