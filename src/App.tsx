@@ -28,7 +28,7 @@ export default function App() {
 
   return (<>
     <div className="background">
-      <div className="h-full overflow-auto overscroll-none">
+      <div className="h-full overflow-auto overscroll-x-contain overscroll-y-auto">
         <div className=" sticky top-0 left-0 menu">
           <Menu
             pageShow={pageShow}
