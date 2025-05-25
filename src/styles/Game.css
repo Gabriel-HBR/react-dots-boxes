@@ -16,7 +16,7 @@
 }
 
 .rhombus:hover {
-    stroke: var(--card-bg-color);
+    stroke: var(--page-primary-color);
     fill-opacity: 1;
 }
 
