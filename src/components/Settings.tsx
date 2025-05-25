@@ -30,7 +30,7 @@ export default function Settings(
     if (count > newPlayers.length) {
       // Adiciona jogadores
       for (let i = newPlayers.length; i < count; i++) {
-        newPlayers.push({ name: `Player ${i + 1}`, points: 0, type: "human" });
+        newPlayers.push({ name: `Player ${i + 1}`, points: 0, type: "human" , winner: false });
       }
     } else {
       // Remove jogadores
@@ -76,7 +76,7 @@ export default function Settings(
               <div key={idx} className="flex gap-2 items-center">
                 <span className="w-6">{idx + 1}.</span>
                 <input
-                  className={`input px-2 py-1 rounded border focus:outline-none ring-(--player${idx+1}-color) focus:ring-1`}
+                  className={`input px-2 py-1 rounded border focus:outline-none focus:ring-1`}
                   type="text"
                   value={player.name}
                   onChange={e => handleNameChange(idx, e.target.value)}
@@ -84,7 +84,7 @@ export default function Settings(
                     minWidth: 0,
                     flex: 1,
                     borderColor: `var(--player${idx+1}-color)`,
-                    caretColor: `var(--player${idx+1}-color)`
+                    color: `var(--player${idx+1}-color)`
                   }}
                 />
                 <select
@@ -93,8 +93,7 @@ export default function Settings(
                   onChange={e => handleTypeChange(idx, e.target.value as Player["type"])}
                 >
                   <option value="human">Human</option>
-                  <option value="specialist">Specialist</option>
-                  <option value="fuzzy">Fuzzy</option>
+                  <option value="robot">Robot</option>
                 </select>
               </div>
             ))}
