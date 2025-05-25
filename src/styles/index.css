@@ -4,12 +4,18 @@
 @layer base{
     :root {
         /*players*/
-        --player1-color: #65aedb;
-        --player2-color: #7cdf52;
-        --player3-color: #ff595e;
-        --player4-color: #ffbd3a;
-        --player5-color: #fffc61;
-        --player6-color: #a574e9;
+        --player1-color: #1982c4;
+        --player2-color: #639d05;
+        --player3-color: #dc3036;
+        --player4-color: #df7d1b;
+        --player5-color: #cfc100;
+        --player6-color: #6a4c93;
+        --player1-bg-color: #65aedb;
+        --player2-bg-color: #7cdf52;
+        --player3-bg-color: #ff595e;
+        --player4-bg-color: #ffbd3a;
+        --player5-bg-color: #fffc61;
+        --player6-bg-color: #a574e9;
 
         /*page*/
         --page-color: #000;
@@ -25,18 +31,25 @@
         --game-rhombus-stroke-width: 4;
         --game-color: #666;
         --game-box-disabled-color: none;
+        --game-trophy-color: #ffc609;
         
         /*animation*/
         --animation-duration: 0.2s;
     }
     .dark{
         /*players*/
-        --player1-color: #1982c4;
-        --player2-color: #639d05;
-        --player3-color: #dc3036;
-        --player4-color: #df7d1b;
-        --player5-color: #cfc100;
-        --player6-color: #6a4c93;
+        --player1-color: #65aedb;
+        --player2-color: #7cdf52;
+        --player3-color: #ff595e;
+        --player4-color: #ffbd3a;
+        --player5-color: #fffc61;
+        --player6-color: #a574e9;
+        --player1-bg-color: #1982c4;
+        --player2-bg-color: #639d05;
+        --player3-bg-color: #dc3036;
+        --player4-bg-color: #df7d1b;
+        --player5-bg-color: #cfc100;
+        --player6-bg-color: #6a4c93;
 
         /*page*/
         --page-color: #eaeaea;
@@ -116,4 +129,4 @@ body,.card, .menu, .button, .x-button, .box, .dot, .line, .rhombus{
 .x-button:active {
     transform: translate(0px, 0px);
     box-shadow:0 0 0px 0px var(--shadow-color);
-}''
+}

@@ -24,3 +24,16 @@
     pointer-events: 'none';
     fill-opacity: var(--game-box-opacity);
 }
+
+.trophy{
+    fill: var(--game-trophy-color);
+    width: 1.3em ;
+    height: 1.3em;
+    display: inline-block;
+    margin-right: 0.5em;
+    border-radius: 50%;
+}
+
+.trophy-hidden{
+    opacity: 0;
+}
