@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Player } from "../types/PlayerType";
+// import AIBoard from "../types/BoardType";
 
 const dotSpacing = 50; // Spacing between dots in pixels
 const dotRadius = 5; // Radius of the dots
@@ -8,20 +9,18 @@ export default function GameBoard({
   gameBoard,
   players,
   setPlayers,
-  // setGameOver,
+  setGameOver,
   gameReset,
   playerTurn,
   setPlayerTurn,
-  // setWinners,
 }: {
   gameBoard: number[][];
   players: Player[];
   setPlayers: (newPlayers: Player[]) => void;
-  // setGameOver: (isGameOver: boolean) => void;
+  setGameOver: (isGameOver: boolean) => void;
   gameReset: boolean;
   playerTurn: number;
   setPlayerTurn: (newPlayerTurn: number) => void;
-  // setWinners: (winner: number[] | undefined) => void;
 }) {
   const [board, setBoard] = useState<number[][]>(gameBoard.map((row) => [...row]));
 
@@ -38,15 +37,15 @@ export default function GameBoard({
     height = (board.length + 1) / 2;
     width = (board[0].length + 1) / 2;
     playersActive = players.length;
-    // setWinners(undefined);
     setPlayerTurn(0);
     let resetPlayers: Player[] = [...players];
     resetPlayers.forEach((player) => {
       player.points = 0;
+      player.winner = false;
     });
     setPlayers(resetPlayers);
     setBoard(gameBoard.map((row) => [...row]));
-    // setGameOver(false);
+    setGameOver(false);
   };
 
   // Function to handle the click on the game board
@@ -61,38 +60,30 @@ export default function GameBoard({
     if (points > 0) {
       let newPlayers: Player[] = [...players];
       newPlayers[playerTurn].points += points;
-      setPlayers(newPlayers);
+      setPlayers(checkPlayers(newPlayers));
     }
     // If no points are scored, switch to the next player
     else {
       setPlayerTurn((playerTurn + 1) % playersActive);
     }
-
-    // setWinners(checkWinners());
-
+    
+    // const aiBoard = new AIBoard(board);
+    // console.log("chains", aiBoard.chains);
+    // console.log("not chains", aiBoard.notChains);
+    // console.log("safe moves", aiBoard.safeMoves);
 
     // Is GameOver
-    if (checkGameOver()) {
-      console.log("Game Over");
-      // setGameOver(true);
-    }
+    setGameOver(checkGameOver());
   };
 
-  // const checkWinners = (): number[] => {
-  //   let maxPoints: number = -1;
-  //   for (let i = 0; i < playersActive; i++) {
-  //     if (players[i].points > maxPoints) {
-  //       maxPoints = players[i].points;
-  //     }
-  //   }
-  //   let winners: number[] = [];
-  //   for (let i = 0; i < playersActive; i++) {
-  //     if (players[i].points === maxPoints) {
-  //       winners.push(i);
-  //     }
-  //   }
-  //   return winners;
-  // };
+  const checkPlayers = (players:Player[]): Player[] => {
+    let maxPoints: number = Math.max(...players.map(p => p.points));
+    const updatedPlayers = players.map(player => ({
+      ...player,
+      winner: player.points === maxPoints && maxPoints > 0,
+    }));
+    return updatedPlayers;
+  }
 
   const checkPoints = (row: number, col: number): number => {
     const maxRow: number = board.length - 1;
@@ -189,7 +180,7 @@ export default function GameBoard({
                 style={{
                   fill:
                     board[j * 2 + 1][i * 2 + 1] > 0
-                      ? "var(--player" + board[j * 2 + 1][i * 2 + 1] +"-color)"
+                      ? "var(--player" + board[j * 2 + 1][i * 2 + 1] +"-bg-color)"
                       : board[j * 2 + 1][i * 2 + 1] == 0? "transparent" : "var(--game-box-disabled-color)",
                 }}
               />
@@ -269,7 +260,7 @@ export default function GameBoard({
               y2={j * dotSpacing}
               stroke={
                 board[j * 2][i * 2 + 1] > 0
-                  ? "var(--player" + board[j * 2][i * 2 + 1] + "-color)"
+                  ? "var(--player" + board[j * 2][i * 2 + 1] + "-bg-color)"
                   : "var(--game-color)"
               }
               strokeWidth="var(--game-line-width)"
@@ -280,7 +271,7 @@ export default function GameBoard({
                 points={rhombusPoints}
                 className="rhombus"
                 style={{
-                  fill: "var(--player" + (playerTurn + 1) + "-color)",
+                  fill: "var(--player" + (playerTurn + 1) + "-bg-color)",
                 }}
                 onClick={() => {
                   handleClick(
@@ -319,7 +310,7 @@ export default function GameBoard({
               y2={(j + 1) * dotSpacing - dotRadius}
               stroke={
                 board[j * 2 + 1][i * 2] > 0
-                  ? "var(--player" + board[j * 2 + 1][i * 2] + "-color)"
+                  ? "var(--player" + board[j * 2 + 1][i * 2] + "-bg-color)"
                   : "var(--game-color)"
               }
               strokeWidth="var(--game-line-width)"
@@ -330,7 +321,7 @@ export default function GameBoard({
                 points={rhombusPoints}
                 className="rhombus"
                 style={{
-                  fill: "var(--player" + (playerTurn + 1) + "-color)",
+                  fill: "var(--player" + (playerTurn + 1) + "-bg-color)",
                 }}
                 onClick={() => {handleClick(j * 2 + 1, i * 2);}}
               />

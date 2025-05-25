@@ -1,5 +1,6 @@
 export type Player = {
     name: string;
     points: number;
-    type: 'human' | 'specialist' | 'fuzzy';
+    type: 'human' | 'robot';
+    winner: boolean;
 };

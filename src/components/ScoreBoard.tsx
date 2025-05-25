@@ -1,12 +1,13 @@
 import { Player } from "../types/PlayerType.ts";
 
 export default function ScoreBoard(
-    { players, playerTurn, gameReset, setGameReset }: 
+    { players, playerTurn, gameReset, setGameReset, gameOver }: 
     { 
         players: Player[],
         playerTurn: number,
         gameReset: boolean,
         setGameReset: (gameReset: boolean) => void
+        gameOver: boolean
     }) {
     return (<>
         <div className="flex flex-col">

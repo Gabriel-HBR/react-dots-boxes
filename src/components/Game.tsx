@@ -21,20 +21,20 @@ export default function Game(
 }
 ) {
 
-  // const [gameOver, setGameOver] = useState<boolean>(false);
+  const [gameOver, setGameOver] = useState<boolean>(false);
   const [playerTurn, setPlayerTurn] = useState<number>(0);
-  // const [winners, setWinners] = useState<number[]|undefined>(undefined);
 
   return (
     <>
       <div className="flex p-4">
         <div className="flex-1">
-          <div className="sticky inline-block top-38 sm:top-24 px-4 py-3 min-w-[160px] card">
+          <div className="sticky inline-block top-38 sm:top-24 px-4 py-3 min-w-[200px] card">
             <ScoreBoard
               players={players} 
               playerTurn={playerTurn}
               setGameReset={setGameReset}
               gameReset={gameReset}
+              gameOver={gameOver}
             />
           </div>
         </div>
@@ -45,11 +45,10 @@ export default function Game(
                 gameBoard={board}
                 players={players}
                 setPlayers={setPlayers}
-                // setGameOver={setGameOver}
+                setGameOver={setGameOver}
                 gameReset={gameReset}
                 playerTurn={playerTurn}
                 setPlayerTurn={setPlayerTurn}
-                // setWinners={setWinners}
               />
             </div>
           </div>
