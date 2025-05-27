@@ -1,4 +1,4 @@
-import GameBoard from "./GameBoard.tsx";
+import GameBoard from "./GameBoard";
 import ScoreBoard from "./ScoreBoard.tsx";
 import "../styles/Game.css";
 
@@ -45,6 +45,7 @@ export default function Game(
                 gameBoard={board}
                 players={players}
                 setPlayers={setPlayers}
+                // gameOver={gameOver}
                 setGameOver={setGameOver}
                 gameReset={gameReset}
                 playerTurn={playerTurn}

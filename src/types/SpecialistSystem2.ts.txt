@@ -1,0 +1,632 @@
+import B from "./BoardClass";
+import { Edge } from "./EdgeType";
+import F from "./FaceClass";
+import H from "./HalfEdgeClass";
+import C from "./ChainClass";
+
+// --- Classe Principal SpecialistSystem ---
+
+export class SpecialistSystem {
+  board: B;        // Uma CÓPIA do tabuleiro para análise
+  chains1: C[] = []; // Cadeias Abertas (N caixas, N+1 arestas livres)
+  chains2: C[] = []; // Cadeias com "Nub" (N caixas, N arestas livres, uma ponta é beco sem saída)
+  chains3: C[] = []; // Anéis (N caixas, N arestas livres, fechada)
+  notChains: F[] = []; // Caixas que não formam cadeias (e.g. >2 arestas livres inicialmente)
+  safeMoves: Edge[] = [];
+
+  pointsForCurrentTurn: number = 0; // Pontos acumulados na sequência de movimentos da IA
+  forceEndOfTurn: boolean = false; // Se uma regra determina o fim da jogada
+
+  numPlayers: number;
+  currentPlayerId: number; // ID do jogador atual (para quem o sistema está pensando)
+
+  constructor(board: B, numPlayers: number, currentPlayerId: number) {
+    // IMPORTANTE: O 'board' passado deve ser uma cópia profunda (deep clone)
+    // para evitar modificar o estado real do jogo durante a análise do Minimax.
+    this.board = board; // Assume-se que o chamador já passou uma cópia.
+    this.numPlayers = numPlayers;
+    this.currentPlayerId = currentPlayerId;
+
+    this.analyzeBoard();
+  }
+
+  private analyzeBoard(): void {
+    this.chains1 = [];
+    this.chains2 = [];
+    this.chains3 = [];
+    this.notChains = [];
+    this.safeMoves = [];
+    this.pointsForCurrentTurn = 0; // Resetar pontos acumulados para a nova análise/jogada
+    this.forceEndOfTurn = false;   // Resetar flag de fim de turno
+
+    // Limpar chainId de todas as caixas antes de reanalisar
+    for (const row of this.board.boxes) {
+        for (const box of row) {
+            if (box) box.setChainId(null);
+        }
+    }
+
+    for (const row of this.board.boxes) {
+      for (const box of row) {
+        if (box && box.getChainId() == null && box.owner == null && box.getFreeEdges() <= 2 && box.getFreeEdges() > 0) {
+          this.generateChain(box);
+        } else if (box && box.getFreeEdges() > 2 && box.owner == null) {
+          if (!this.notChains.includes(box)) {
+            this.notChains.push(box);
+          }
+        }
+      }
+    }
+    this.generateSafeMovesInternal();
+  }
+
+  private generateChain(startBox: F): void {
+    const q: F[] = [startBox];
+    const visitedInThisTraversal: Set<F> = new Set([startBox]);
+    const currentChainFaces: F[] = [];
+    const currentChainEdges: H[] = []; 
+
+    let head = 0;
+    while(head < q.length){
+        const currentBox = q[head++];
+        currentChainFaces.push(currentBox);
+
+        let h = currentBox.h;
+        if (!h) continue;
+        do {
+            if (h.isFree) {
+                if (!currentChainEdges.some(e => e.id === h!.id)) {
+                    currentChainEdges.push(h);
+                }
+
+                if (h.pair && h.pair.f.owner == null && h.pair.f.getFreeEdges() <= 2) {
+                    const neighborBox = h.pair.f;
+                    if (!visitedInThisTraversal.has(neighborBox)) {
+                        visitedInThisTraversal.add(neighborBox);
+                        q.push(neighborBox);
+                    }
+                }
+            }
+            h = h.next;
+        } while (h !== currentBox.h);
+    }
+
+    if (currentChainFaces.length === 0) return;
+    
+    // Determinar se é anel (isRing)
+    // Um anel simples tem N faces e N arestas na cadeia.
+    // Além disso, cada face em um anel deve ter exatamente duas arestas que pertencem à cadeia.
+    let isActuallyRing = false;
+    if (currentChainEdges.length === currentChainFaces.length && currentChainFaces.length > 0) {
+        isActuallyRing = true; // Suposição inicial
+        for (const face of currentChainFaces) {
+            let edgesConnectedToChain = 0;
+            let h = face.h;
+            if (!h) {isActuallyRing = false; break;}
+            do {
+                if (h.isFree && currentChainEdges.some(ce => ce.id === h!.id)) {
+                    if (h.pair && currentChainFaces.includes(h.pair.f)) { // Conecta a outra face da cadeia
+                        edgesConnectedToChain++;
+                    } else if (!h.pair) { // Borda do tabuleiro, não pode ser anel simples se for ponta
+                        // isActuallyRing = false; break; 
+                        // Para anéis na borda, essa lógica precisa ser mais esperta.
+                        // Por ora, focamos em anéis internos.
+                    }
+                }
+                h = h.next;
+            } while (h !== face.h);
+
+            // Em um anel simples, cada caixa deve ter 2 conexões para *outras caixas da cadeia*.
+            // A contagem de `currentChainEdges` já considera as arestas da cadeia.
+            // A checagem mais simples é `currentChainEdges.length === currentChainFaces.length`.
+            // A lógica de `edgesConnectedToChain` acima é uma tentativa de ser mais preciso, mas é complexa.
+            // Vamos simplificar: se N faces e N arestas, assume-se anel por enquanto.
+            // A robustez da detecção de anel é crucial.
+        }
+    }
+
+
+    const chainId = Symbol(`chain-${Date.now()}-${Math.random()}`);
+    // As faces já foram marcadas com chainId dentro do construtor de C
+    // Mas é bom garantir que o chainId usado aqui é o que vai para o objeto C.
+    for(const face of currentChainFaces) { 
+        face.setChainId(chainId);
+    }
+    const newChain = new C(chainId, [...currentChainFaces], [...currentChainEdges], isActuallyRing);
+
+
+    if (newChain.isRing) { // Usando a propriedade isRing definida no construtor de C
+        if (newChain.edges.length === newChain.faces.length && newChain.faces.length > 0) {
+            this.chains3.push(newChain); 
+        } else {
+            if (newChain.faces.length > 0) {
+                newChain.isRing = false; // Reclassificar se a contagem não bate para anel
+                this.chains1.push(newChain); 
+            }
+        }
+    } else {
+        if (newChain.edges.length === newChain.faces.length + 1 && newChain.faces.length > 0) {
+            this.chains1.push(newChain);
+        }
+        else if (newChain.edges.length === newChain.faces.length && newChain.faces.length > 0) {
+            let isNubChain = false;
+            if (newChain.faces.length === 1) { 
+                isNubChain = (newChain.faces[0].getFreeEdges() === 1 && newChain.edges.length === 1);
+            } else {
+                const firstBox = newChain.faces[0];
+                const lastBox = newChain.faces[newChain.faces.length - 1];
+                
+                // Contar quantas arestas da *cadeia* estão conectadas a firstBox e lastBox
+                let firstBoxEdgesInChainCount = 0;
+                let hFirst = firstBox.h;
+                if(hFirst){
+                    do {
+                        if(newChain.edges.some(e => e.id === hFirst!.id)) firstBoxEdgesInChainCount++;
+                        hFirst = hFirst.next;
+                    } while (hFirst !== firstBox.h);
+                }
+
+                let lastBoxEdgesInChainCount = 0;
+                let hLast = lastBox.h;
+                if(hLast){
+                    do {
+                        if(newChain.edges.some(e => e.id === hLast!.id)) lastBoxEdgesInChainCount++;
+                        hLast = hLast.next;
+                    } while (hLast !== lastBox.h);
+                }
+                // Uma ponta de Nub tem apenas UMA aresta da cadeia conectada a ela, e a caixa em si tem apenas essa aresta livre.
+                if ((firstBox.getFreeEdges() === 1 && firstBoxEdgesInChainCount === 1) ||
+                    (lastBox.getFreeEdges() === 1 && lastBoxEdgesInChainCount === 1) ) {
+                    isNubChain = true;
+                    if (lastBox.getFreeEdges() === 1 && lastBoxEdgesInChainCount === 1 && !(firstBox.getFreeEdges() === 1 && firstBoxEdgesInChainCount === 1) ) {
+                        newChain.faces.reverse();
+                        // Reordenar newChain.edges de acordo seria necessário para consistência, mas é complexo.
+                        // A identificação como Nub é o mais importante.
+                    }
+                }
+            }
+            if (isNubChain) {
+                this.chains2.push(newChain);
+            } else {
+                this.chains1.push(newChain);
+            }
+        } else {
+            if (newChain.faces.length > 0 && newChain.edges.length > 0) {
+                this.chains1.push(newChain); 
+            } else if (newChain.faces.length > 0) {
+                 for(const f of newChain.faces) f.setChainId(null); 
+            }
+        }
+    }
+  }
+
+  private generateSafeMovesInternal(): void {
+    this.safeMoves = [];
+    for (const row of this.board.boxes) {
+      for (const box of row) {
+        if (box && box.owner == null) { 
+          let h: H | null = box.h;
+          if (!h) continue;
+          do {
+            if (h.isFree) {
+              let givesPointToOpponent = false;
+              // Verifica se jogar esta aresta fecha a caixa 'h.f'
+              if (h.f.getFreeEdges() === 1) givesPointToOpponent = true; 
+              // Verifica se jogar esta aresta fecha a caixa vizinha 'h.pair.f'
+              if (!givesPointToOpponent && h.pair && h.pair.f.getFreeEdges() === 1) givesPointToOpponent = true;
+
+              if (!givesPointToOpponent) {
+                const newE: Edge = { row: h.getRow(), col: h.getCol() };
+                if (!this.safeMoves.some(e => this.isEqualEdge(e, newE))) {
+                  this.safeMoves.push(newE);
+                }
+              }
+            }
+            h = h.next;
+          } while (h !== box.h);
+        }
+      }
+    }
+  }
+
+  private isEqualEdge(e1: Edge, e2: Edge): boolean {
+    return e1.row === e2.row && e1.col === e2.col;
+  }
+
+  private sortChainsAsc(): void {
+    this.chains1.sort((a, b) => a.length - b.length);
+    this.chains2.sort((a, b) => a.length - b.length);
+    this.chains3.sort((a, b) => a.length - b.length);
+  }
+
+  private sortChainsDesc(): void {
+    this.chains1.sort((a, b) => b.length - a.length);
+    this.chains2.sort((a, b) => b.length - a.length);
+    this.chains3.sort((a, b) => b.length - a.length);
+  }
+
+  private applyMoveSequenceToInternalBoard(moves: Edge[]): { totalPointsThisSequence: number, turnStillMine: boolean } {
+      let pointsInSequence = 0;
+      let currentTurnContinues = false;
+      // Não clonar this.board aqui, assume-se que o construtor recebeu uma cópia
+      // e as modificações são feitas diretamente em this.board para esta instância do SpecialistSystem.
+
+      for (const move of moves) {
+          const { pointsMade, turnContinues } = this.board.applyMove(move, this.currentPlayerId);
+          pointsInSequence += pointsMade;
+          currentTurnContinues = turnContinues;
+
+          if (!currentTurnContinues) { 
+              break;
+          }
+      }
+      
+      // Após aplicar a sequência, reanalisar o tabuleiro para o novo estado
+      // se algum movimento foi feito.
+      if (moves.length > 0) {
+        this.analyzeBoard(); 
+      }
+      return { totalPointsThisSequence: pointsInSequence, turnStillMine: currentTurnContinues };
+  }
+
+  getBestMoveSequence(maxTreeHeight: number, treeHeight: number = 0): Edge[] {
+    if (treeHeight > maxTreeHeight || this.forceEndOfTurn) {
+      return [];
+    }
+
+    let accumulatedMovesForTurn: Edge[] = [];
+    let turnContinuesForPlayer = true; // Flag para controlar o turno do jogador atual
+
+    // --- Fase 1: Movimentos Obrigatórios / Táticos ---
+    this.sortChainsAsc();
+    const rule1Moves = this.rule1(); // rule1 já chama applyMove internamente e seta forceEndOfTurn
+    if (rule1Moves.length > 0) {
+        accumulatedMovesForTurn = accumulatedMovesForTurn.concat(rule1Moves);
+        // pointsForCurrentTurn é atualizado dentro de rule1
+        if (this.forceEndOfTurn) return accumulatedMovesForTurn;
+        // Se rule1 fez pontos e o turno continua (forceEndOfTurn não é true),
+        // o estado do tabuleiro já foi atualizado e reanalisado por applyMove/analyzeBoard.
+        // A flag turnContinuesForPlayer é implicitamente gerenciada por this.forceEndOfTurn
+    }
+    
+    // --- Fase 2: Estratégias de Cadeia ---
+    this.sortChainsDesc(); // Preparar para regras que lidam com cadeias mais longas
+    
+    if (!this.forceEndOfTurn) {
+        const rule2Moves = this.rule2();
+        if (rule2Moves.length > 0) {
+            accumulatedMovesForTurn = accumulatedMovesForTurn.concat(rule2Moves);
+            if (this.forceEndOfTurn) return accumulatedMovesForTurn;
+        }
+    }
+
+    if (!this.forceEndOfTurn) {
+        const rule3Moves = this.rule3();
+        if (rule3Moves.length > 0) {
+            accumulatedMovesForTurn = accumulatedMovesForTurn.concat(rule3Moves);
+            if (this.forceEndOfTurn) return accumulatedMovesForTurn;
+        }
+    }
+    
+    // Condição para rule4: uma chain1 com length >= 3 E NENHUMA chain2
+    if (!this.forceEndOfTurn && this.chains1.some(c => c.length >= 3) && this.chains2.length === 0) {
+        const rule4Moves = this.rule4(); 
+        if (rule4Moves.length > 0) {
+            accumulatedMovesForTurn = accumulatedMovesForTurn.concat(rule4Moves);
+            // rule4 deve setar forceEndOfTurn se for o caso
+            if (this.forceEndOfTurn) return accumulatedMovesForTurn;
+        }
+    }
+
+    // Condição para rule5: uma chain2 com length >= 2 E NENHUMA chain1
+    if (!this.forceEndOfTurn && this.chains2.some(c => c.length >= 2) && this.chains1.length === 0) {
+        const rule5Moves = this.rule5();
+        if (rule5Moves.length > 0) {
+            accumulatedMovesForTurn = accumulatedMovesForTurn.concat(rule5Moves);
+            // rule5 deve setar forceEndOfTurn
+            if (this.forceEndOfTurn) return accumulatedMovesForTurn;
+        }
+    }
+
+    // --- Fase 3: Movimentos de último recurso ou Safe Moves ---
+    if (!this.forceEndOfTurn && accumulatedMovesForTurn.length === 0) {
+        if (this.safeMoves.length > 0) {
+            const safeMoveToPlay = this.safeMoves[0]; // Pega o primeiro safe move
+            accumulatedMovesForTurn.push(safeMoveToPlay);
+            
+            // Aplica este único safe move e atualiza o estado
+            const { pointsMade, turnContinues } = this.board.applyMove(safeMoveToPlay, this.currentPlayerId);
+            this.pointsForCurrentTurn += pointsMade; // Geralmente 0 para safe move
+            this.analyzeBoard(); // Reanalisa após o safe move
+            
+            this.forceEndOfTurn = true; // Jogar um safe move geralmente termina o turno.
+        }
+    }
+    
+    return accumulatedMovesForTurn;
+  }
+
+  private rule1(): Edge[] {
+    let moves: Edge[] = [];
+    let turnContinuesForRule = true; 
+
+    // Consumir Nubs de 1 aresta (chains2 com length 1)
+    let k = 0;
+    while (k < this.chains2.length && turnContinuesForRule) {
+        const chain = this.chains2[k];
+        if (chain.length === 1) {
+            const { consumedEdge } = chain.consumeEdge(); 
+            if (consumedEdge) {
+                const edgeToPlay: Edge = { row: consumedEdge.getRow(), col: consumedEdge.getCol() };
+                moves.push(edgeToPlay);
+                const { pointsMade, turnContinues } = this.board.applyMove(edgeToPlay, this.currentPlayerId);
+                this.pointsForCurrentTurn += pointsMade;
+                turnContinuesForRule = turnContinues;
+                if (!turnContinuesForRule) this.forceEndOfTurn = true;
+            }
+            this.chains2.splice(k, 1); 
+            this.analyzeBoard(); // Reanalisar após modificação de cadeia
+        } else {
+            k++;
+        }
+    }
+
+    // Consumir cadeias ABERTAS CURTAS (de this.chains1, pois chains3 agora são só anéis)
+    // com 2, 3 ou 4 arestas.
+    let i = 0;
+    while (i < this.chains1.length && turnContinuesForRule) {
+        const chain = this.chains1[i];
+        // chain.isRing é false para chains1
+        if (chain.length >= 2 && chain.length <= 4) { 
+            let consumedAllFromThisChain = true;
+            while (chain.length > 0 && turnContinuesForRule) {
+                const { consumedEdge } = chain.consumeEdge();
+                if (consumedEdge) {
+                    const edgeToPlay: Edge = { row: consumedEdge.getRow(), col: consumedEdge.getCol() };
+                    moves.push(edgeToPlay);
+                    const { pointsMade, turnContinues } = this.board.applyMove(edgeToPlay, this.currentPlayerId);
+                    this.pointsForCurrentTurn += pointsMade;
+                    turnContinuesForRule = turnContinues;
+                    if (!turnContinuesForRule) this.forceEndOfTurn = true;
+                } else { 
+                    consumedAllFromThisChain = false;
+                    break;
+                }
+            }
+            if (consumedAllFromThisChain || chain.length === 0) {
+                this.chains1.splice(i, 1); 
+                this.analyzeBoard(); 
+            } else {
+                i++; 
+            }
+        } else {
+            i++;
+        }
+    }
+    // forceEndOfTurn é setado se um movimento não resultou em continuação do turno.
+    return moves;
+  }
+
+  private rule2(): Edge[] {
+    let moves: Edge[] = [];
+    let turnContinuesForRule = true;
+    // Objetivo: consumir `chains1` até restar no máximo uma, e essa uma ter == 3 arestas.
+    // `sortChainsDesc` já foi chamado em getBestMoveSequence.
+    while (turnContinuesForRule && (this.chains1.length > 1 || (this.chains1.length === 1 && this.chains1[0].length > 3))) {
+        if (this.chains1.length === 0) break;
+
+        const chainToProcess = this.chains1[0]; // Mais longa
+        if (chainToProcess.length === 0) { // Segurança: remover cadeia vazia
+            this.chains1.shift(); 
+            this.analyzeBoard();
+            continue;
+        }
+        // Consome uma aresta da cadeia mais longa, até que a condição seja satisfeita
+        const { consumedEdge } = chainToProcess.consumeEdge(); 
+        if (consumedEdge) {
+            const edgeToPlay: Edge = { row: consumedEdge.getRow(), col: consumedEdge.getCol() };
+            moves.push(edgeToPlay);
+            const { pointsMade, turnContinues } = this.board.applyMove(edgeToPlay, this.currentPlayerId);
+            this.pointsForCurrentTurn += pointsMade;
+            turnContinuesForRule = turnContinues;
+
+            if (chainToProcess.length === 0) {
+                this.chains1.shift();
+            }
+            this.analyzeBoard(); // Reanalisar após cada movimento que altera o tabuleiro
+            if (!turnContinuesForRule) this.forceEndOfTurn = true;
+        } else {
+            break; 
+        }
+    }
+    return moves;
+  }
+
+  private rule3(): Edge[] {
+    let moves: Edge[] = [];
+    let turnContinuesForRule = true;
+
+    // Condição: `chains1` e `chains2` existem.
+    if (this.chains1.length > 0 && this.chains2.length > 0) {
+        // Parte 1: Consumir a `chain1` restante (após rule2, deve ser uma com length 3, ou a mais longa disponível)
+        const chain1ToConsume = this.chains1[0]; // Pega a primeira (mais longa após sortDesc)
+        while (turnContinuesForRule && chain1ToConsume && chain1ToConsume.length > 0) {
+            const { consumedEdge } = chain1ToConsume.consumeEdge();
+            if (consumedEdge) {
+                const edgeToPlay: Edge = { row: consumedEdge.getRow(), col: consumedEdge.getCol() };
+                moves.push(edgeToPlay);
+                const { pointsMade, turnContinues } = this.board.applyMove(edgeToPlay, this.currentPlayerId);
+                this.pointsForCurrentTurn += pointsMade;
+                turnContinuesForRule = turnContinues;
+                this.analyzeBoard();
+                if (!turnContinuesForRule) this.forceEndOfTurn = true;
+            } else {
+                break; // Falha ao consumir
+            }
+        }
+        if (chain1ToConsume && chain1ToConsume.length === 0) {
+            this.chains1.shift(); // Remove se esvaziada
+            this.analyzeBoard();
+        }
+
+        // Parte 2: Consumir cada `chain2` até `edges.length === 2`.
+        // Iterar com cuidado, pois o array `this.chains2` pode ser modificado.
+        if (turnContinuesForRule) { // Só continua se o turno não acabou ao consumir chain1
+            for (let i = 0; i < this.chains2.length && turnContinuesForRule; ) {
+                const chain2 = this.chains2[i];
+                let consumedFromThisChain2 = false;
+                while (turnContinuesForRule && chain2.length > 2) {
+                    const { consumedEdge } = chain2.consumeEdge(); // Consome da ponta "aberta"
+                    if (consumedEdge) {
+                        const edgeToPlay: Edge = { row: consumedEdge.getRow(), col: consumedEdge.getCol() };
+                        moves.push(edgeToPlay);
+                        const { pointsMade, turnContinues } = this.board.applyMove(edgeToPlay, this.currentPlayerId);
+                        this.pointsForCurrentTurn += pointsMade;
+                        turnContinuesForRule = turnContinues;
+                        consumedFromThisChain2 = true;
+                        this.analyzeBoard();
+                        if (!turnContinuesForRule) this.forceEndOfTurn = true;
+                    } else {
+                        break; // Falha ao consumir
+                    }
+                }
+                if (chain2.length <= 2 && consumedFromThisChain2) {
+                    // A cadeia agora tem 2 ou menos arestas. Não remove, pode ser usada em sacrifício.
+                    // Avança o índice se não for remover.
+                     i++; // Ou reavalia o array se ele for modificado.
+                } else if (!consumedFromThisChain2) {
+                    i++; // Não consumiu desta cadeia, avança.
+                }
+                 // Se chain2.length se tornou 0, deveria ser removida.
+                if (chain2.length === 0) {
+                    this.chains2.splice(i, 1);
+                    this.analyzeBoard();
+                    // Não incrementa i, pois o array diminuiu.
+                } else if (chain2.length > 2 && !turnContinuesForRule) {
+                    // Parou no meio de uma chain2 e o turno acabou
+                    break; // Sai do loop for
+                } else if (chain2.length <= 2) {
+                    i++; // Já está com 2 ou menos, ou foi consumida e o turno continua
+                }
+            }
+        }
+        
+        // Parte 3: Simulação Minimax (Placeholder)
+        // Se, após as operações acima, restam chains2 com exatamente 2 arestas,
+        // e o turno ainda pertence ao jogador:
+        if (turnContinuesForRule && this.chains2.some(c => c.length === 2)) {
+            // TODO: Implementar lógica Minimax aqui.
+            // 1. Gerar dois cenários:
+            //    a) Consumir todas as chains2 de 2 arestas restantes.
+            //    b) Não consumir (fazer outro movimento, e.g., safe move, ou nada se for o fim).
+            // 2. Para cada cenário, criar um novo SpecialistSystem com o tabuleiro resultante.
+            // 3. Chamar uma função Minimax recursiva para avaliar a pontuação de cada cenário
+            //    até maxTreeHeight.
+            // 4. Escolher a sequência de movimentos (a ou b) que leva à melhor pontuação Minimax.
+            // 5. Adicionar os movimentos escolhidos a `moves`.
+            // Por enquanto, se o turno continua, não faremos nada extra aqui,
+            // deixando as chains2 de 2 arestas para possível sacrifício em rule5 ou para o oponente.
+            // console.log("Rule 3: Minimax simulation needed for chains2 of length 2.");
+        }
+    }
+    // forceEndOfTurn é setado se um movimento não resultou em continuação do turno.
+    return moves;
+  }
+
+  private rule4(safeMoveIndexToUse?: number): Edge[] {
+    let moves: Edge[] = [];
+    // Condição: uma chain1 com length >= 3 E NENHUMA chain2
+    const eligibleChain1 = this.chains1.find(c => c.length >= 3);
+
+    if (eligibleChain1 && this.chains2.length === 0) {
+        // Ação similar à primeira parte da rule4 original do Canvas:
+        // Pegar 2 arestas da chain1 (sem pontuar), e então jogar 1 safe move, se disponível.
+        if (eligibleChain1.length >= 2) { // Precisa de pelo menos 2 para pegar
+            const { consumedEdge: edge1 } = eligibleChain1.consumeEdge();
+            if (edge1) {
+                const move1: Edge = { row: edge1.getRow(), col: edge1.getCol() };
+                moves.push(move1);
+                // Aplicar e verificar se pontuou (não deveria)
+                const res1 = this.board.applyMove(move1, this.currentPlayerId);
+                this.pointsForCurrentTurn += res1.pointsMade;
+                this.analyzeBoard();
+                if (!res1.turnContinues) { this.forceEndOfTurn = true; return moves; }
+            } else return []; 
+
+            if (eligibleChain1.length >= 1) { // Pega a segunda
+                const { consumedEdge: edge2 } = eligibleChain1.consumeEdge();
+                if (edge2) {
+                    const move2: Edge = { row: edge2.getRow(), col: edge2.getCol() };
+                    moves.push(move2);
+                    const res2 = this.board.applyMove(move2, this.currentPlayerId);
+                    this.pointsForCurrentTurn += res2.pointsMade;
+                    this.analyzeBoard();
+                    if (!res2.turnContinues) { this.forceEndOfTurn = true; return moves; }
+                } else return moves; 
+            } else return moves;
+
+            // Se há safe moves, joga um.
+            if (this.safeMoves.length > 0) {
+                const safeMoveIdx = safeMoveIndexToUse !== undefined && safeMoveIndexToUse < this.safeMoves.length ?
+                                    safeMoveIndexToUse : 0;
+                if (this.safeMoves[safeMoveIdx]) {
+                    const safeMoveToPlay = this.safeMoves[safeMoveIdx];
+                    moves.push(safeMoveToPlay);
+                    const resSafe = this.board.applyMove(safeMoveToPlay, this.currentPlayerId);
+                    this.pointsForCurrentTurn += resSafe.pointsMade;
+                    // this.safeMoves.splice(safeMoveIdx, 1); // Cuidado ao modificar
+                    this.analyzeBoard();
+                    // Jogar um safe move sempre termina o turno do jogador atual.
+                    this.forceEndOfTurn = true;
+                }
+            } else {
+                // Se não há safe moves, o jogador fez os 2 movimentos na chain1 e o turno acaba.
+                this.forceEndOfTurn = true;
+            }
+        }
+    }
+    return moves;
+  }
+
+  private rule5(): Edge[] {
+    let moves: Edge[] = [];
+    // Condição: uma chain2 com length >= 2 E NENHUMA chain1
+    if (this.chains2.some(c => c.length >= 2) && this.chains1.length === 0 && !this.forceEndOfTurn) {
+        // Ação: Sacrificar. Prioritiza sacrificar de uma chain2.
+        this.sortChainsDesc(); // Para sacrificar na chain2 mais longa/apropriada.
+
+        const sacrificialChain2 = this.chains2.find(c => c.length >= 2);
+        if (sacrificialChain2) {
+            // A aresta a ser sacrificada em um Nub é a que fecha a caixa da "ponta curta",
+            // dando 1 ponto ao oponente, mas forçando-o a abrir o resto do Nub.
+            // Identificar essa aresta específica é complexo sem mais detalhes sobre a estrutura da Chain.
+            // Por simplicidade, se a chain2 tem >=2 arestas, jogar a "última" aresta da ponta mais curta.
+            // Se a chain2 está ordenada da ponta mais longa para a mais curta, seria a última da lista `edges`.
+            if (sacrificialChain2.edges.length > 0) {
+                // A lógica de qual aresta é a "sacrificial" correta em um Nub é crucial.
+                // Assumindo que a última aresta na lista `edges` de um Nub é a da ponta que fecha a caixa.
+                const edgeToSacrifice = sacrificialChain2.edges[sacrificialChain2.edges.length - 1];
+                moves.push({ row: edgeToSacrifice.getRow(), col: edgeToSacrifice.getCol() });
+                // Não aplicamos o movimento ao nosso tabuleiro aqui, pois é um sacrifício.
+                // O oponente fará o movimento e ganhará o ponto.
+                this.forceEndOfTurn = true; 
+                // Não precisa reanalisar o board aqui, pois o turno acaba e o oponente joga.
+                return moves;
+            }
+        }
+        // Se não encontrou chain2 para sacrificar (ou a lógica acima falhou),
+        // e ainda satisfaz a condição (sem chains1), pode tentar sacrificar de um anel.
+        // Esta parte da rule5 original do Canvas:
+        if (!this.forceEndOfTurn && moves.length === 0) { // Se não sacrificou de chain2
+            const ringToSacrifice = this.chains3.find(c => c.isRing && c.length > 0);
+            if (ringToSacrifice) {
+                const edge = ringToSacrifice.edges[0]; 
+                moves.push({ row: edge.getRow(), col: edge.getCol() });
+                this.forceEndOfTurn = true;
+                return moves;
+            }
+        }
+    }
+    return moves;
+  }
+}

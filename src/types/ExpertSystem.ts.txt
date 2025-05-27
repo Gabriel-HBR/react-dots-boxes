@@ -1,0 +1,364 @@
+import B from "./BoardClass.ts";
+import { Edge } from "./EdgeType.ts";
+import F from "./FaceClass.ts";
+import H from "./HalfEdgeClass.ts";
+import C from "./ChainClass.ts";
+
+export class SpecialistSystem {
+    board: B;
+    chains1: C[] = []; // chains of boxes
+    chains2: C[] = []; // chains of boxes
+    chains3: C[] = []; // chains of boxes
+    notChains: F[] = []; // non-chain boxes
+    safeMoves: Edge[] = []; // safe moves
+    points: number = 0; // points
+    forceEnd: boolean = false; // rule 4 forced end
+
+    numPlayers: number; // number of players
+    playerCounter: number; // player counter
+
+    constructor(board: B, numPlayers: number, playerCounter: number = 0) {
+        this.board = board;
+        this.generateChains();
+        this.generateSafeMoves();
+        this.numPlayers = numPlayers;
+        this.playerCounter = playerCounter % numPlayers; // ensure playerCounter is within bounds
+    }
+    private generateChains(): void {
+        for (const row of this.board.boxes) {
+            for (const box of row) {
+                if (box && box.getChainId() == null) this.generateChain(box);
+            }
+        }
+    }
+
+    private generateChain(box: F) {
+        if (box.getFreeEdges() > 2) {
+            this.notChains.push(box);
+            return null;
+        }
+
+        // let chainId:number = this.chains.length;
+        let nextH: H = box.h!;
+        let prevH: H = nextH;
+        let startH: H = box.h!;
+
+        // check if it is an end
+        let aux = 0;
+        let isRing = false;
+        do {
+            if (
+                nextH.pair &&
+                nextH.isFree &&
+                nextH.pair.f.getFreeEdges() <= 2
+            ) {
+                aux++;
+                startH = nextH;
+            }
+            nextH = nextH.next!;
+        } while (nextH != prevH);
+
+        if (aux > 1) {
+            // if not an end, walk to the end and check if it is a loop
+            do {
+                if (
+                    nextH.pair &&
+                    nextH.isFree &&
+                    nextH.pair.f.getFreeEdges() <= 2
+                ) {
+                    prevH = nextH.pair!;
+                    nextH = prevH.next!;
+                    startH = prevH;
+                    if (nextH.f == box) {
+                        isRing = true;
+                        break;
+                    } // It's a ring
+                } else {
+                    nextH = nextH.next!;
+                }
+            } while (nextH != prevH);
+        }
+
+        prevH = startH;
+        nextH = startH.next!;
+        let chain: F[] = [];
+        let edges: H[] = [];
+        // move along the chain again to the other end
+        // let msg = "chain: "+this.chains.length+" start: "+nextH.f.row+" "+nextH.f.col;
+        // nextH.f.setChainId(chainId);
+        chain.push(nextH.f);
+        do {
+            if (nextH.isFree) {
+                edges.push(nextH);
+            }
+            if (
+                nextH.pair &&
+                nextH.isFree &&
+                nextH.pair.f.getFreeEdges() <= 2
+            ) {
+                prevH = nextH.pair;
+                nextH = prevH.next!;
+                if (isRing && nextH.f == box) break; // reached the end of the loop
+                // nextH.f.setChainId(chainId);
+                chain.push(nextH.f);
+            } else {
+                nextH = nextH.next!;
+            }
+        } while (nextH != prevH);
+        // msg+=" end: "+ nextH.f.row+" "+nextH.f.col;
+        // console.log(msg);
+
+        if (edges.length == chain.length + 1 || isRing)
+            this.chains3.push(new C(chain, edges));
+        else if (edges.length == chain.length) {
+            // guarantee that starting face has 1 free edges
+            // if not invert edges[] and faces[]
+            if (chain[0].getFreeEdges() == 1) {
+                this.chains2.push(new C(chain, edges));
+            } else {
+                edges.reverse();
+                chain.reverse();
+                this.chains2.push(new C(chain, edges));
+            }
+        } else if (edges.length + 1 == chain.length)
+            this.chains3.push(new C(chain, edges));
+        else {
+            console.error("Error generating chain: ", new C(chain, edges));
+        }
+    }
+
+    private generateSafeMoves(): void {
+        for (const f of this.notChains) {
+            let h: H = f.h!;
+            let row: number,
+                col: number = 0;
+            do {
+                if (h.isFree) {
+                    row = h.getRow();
+                    col = h.getCol();
+                    let newE: Edge = { row, col };
+
+                    // check if the edge is already in the list
+                    if (
+                        !this.safeMoves.some((e: Edge) =>
+                            this.isEqual(e, newE)
+                        ) &&
+                        (!h.pair || !h.pair.f.getChainId())
+                    )
+                        this.safeMoves.push(newE);
+                }
+                h = h.next!;
+            } while (h != f.h);
+        }
+    }
+    private isEqual(obj1: Edge, obj2: Edge): boolean {
+        return JSON.stringify(obj1) === JSON.stringify(obj2);
+    }
+    sortChainsAsc(): void {
+        // Sort each type of chain, by faces length ascending
+        this.chains1.sort((a: C, b: C) => a.faces.length - b.faces.length);
+        this.chains2.sort((a: C, b: C) => a.faces.length - b.faces.length);
+        this.chains3.sort((a: C, b: C) => a.faces.length - b.faces.length);
+    }
+    sortChainsDesc(): void {
+        // Sort each type of chain, by faces length descending
+        this.chains1.sort((a: C, b: C) => b.faces.length - a.faces.length);
+        this.chains2.sort((a: C, b: C) => b.faces.length - a.faces.length);
+        // this.chains3.sort((a:C, b:C) => b.faces.length - a.faces.length);
+    }
+    getMoves(
+        maxSafeMoves: number,
+        maxTreeHeight: number,
+        treeHeight: number = 0
+    ): Edge[] {
+        if (treeHeight > maxTreeHeight) {
+            // If the tree height is already at the maximum, return an empty array
+            return [];
+        }
+
+        this.sortChainsAsc();
+        let moves: Edge[] = [];
+        // Rule 1: consume smaller chains
+        moves = moves.concat(this.rule1());
+
+        this.sortChainsDesc();
+        let remain: number = 0;
+
+        // Rule 2: consume chain 1, until 
+        let aux: Edge[] = this.rule2();
+        moves.concat(aux); // consume chains of type 1
+        if (aux.length != 0) remain = 4;
+
+        // Rule 3: consume chain 1 if there are chains of type 2
+        aux = this.rule3();
+        moves.concat(aux); // consume chains of type 2
+        if (aux.length != 0) remain = 2;
+
+        if (remain == 4) {
+            aux = this.rule4(); // consume chains of type 1 or type 3
+            moves.concat(aux);
+        }
+
+        // more rules can be added here
+        // quando não houver mais regras, 
+
+        // after all rules,and if i didnt forceEnded i should have a list of possible next moves
+        // the go through it all utilizing the minimax algorithm
+        // starting with max, then min 
+        // if numPlayers is 2, the go like max min max min ...
+        // if numPlayers is 3, the go like max min min max min min ...
+        // if numPlayers is 6, the go like max min min min min max min min ...
+        // i think i can achieve that using playerCounter
+        // then reaching the end of the tree, i should return the moves for each minmax iteration
+        // for eact possible move,
+        // if max (playerCounter == 0), i should add points (move[].length - 1) returned
+        // if min (playerCounter != 0), i should subtract points (move[].length - 1) returned
+        // and go adding or subtracting points starting with 0 from the last tree iteration up to the first
+        // if max get moves and add points
+        // if min get moves and subtract points
+        // newIteration:SpecialistSystem = new SpecialistSystem(
+        //     structuredClone(this.board),
+        //     this.numPlayers,
+        //     this.playerCounter+1
+        // );
+        //
+        // getMoves(
+        // maxSafeMoves,
+        // maxTreeHeight,
+        // treeHeight+1
+        // )
+        //
+        return moves;
+    }
+
+    private rule1(): Edge[] {
+        // check for smaller chains
+        // in chains1, check if edge.length <= 2
+        let moves: Edge[] = [];
+        while (this.chains1[0] && this.chains1[0].edges.length <= 2) {
+            let edge: H = this.chains1[0].edges[0];
+            moves.push({ row: edge.getRow(), col: edge.getCol() });
+            const points = this.chains1[0].consumeEdge(); // consume the edge
+            if (this.chains1[0].edges.length == 0) {
+                this.chains1.shift(); // remove the chain if it has no edges left
+            }
+            this.points += points; // accumulate points
+        }
+        // in chains2, check if edge.length == 1
+        while (this.chains2[0] && this.chains2[0].edges.length == 1) {
+            let edge: H = this.chains2[0].edges[0];
+            moves.push({ row: edge.getRow(), col: edge.getCol() });
+            const points = this.chains2[0].consumeEdge(); // consume the edge
+            this.chains2.shift(); // remove the chain if it has no edges left
+            this.points += points; // accumulate points
+        }
+        return moves;
+    }
+
+    private rule2(): Edge[] {
+        // loop through chains type 1 (chains1[])
+        // and consume until there is one chain and it has 3 edges left
+        let moves: Edge[] = [];
+        while (this.chains1.length > 1 || this.chains1[0].edges.length > 3) {
+            for (const chain of this.chains1) {
+                moves.push({
+                    row: chain.edges[0].getRow(),
+                    col: chain.edges[0].getCol(),
+                });
+                const points = this.chains1[0].consumeEdge(); // consume the edge
+                if (this.chains1[0].edges.length == 0) {
+                    this.chains1.shift(); // remove the chain if it has no edges left
+                }
+                this.points += points; // accumulate points
+            }
+        }
+        return moves;
+    }
+
+    private rule3(): Edge[] {
+        let moves: Edge[] = [];
+        // if there is chains type 2 and chains type 1, consume chains type 1
+        // in theory, there is only one chain of type 1
+        if (this.chains2.length > 0 && this.chains1.length > 0) {
+            while (this.chains1.length > 0) {
+                moves.push({
+                    row: this.chains1[0].edges[0].getRow(),
+                    col: this.chains1[0].edges[0].getCol(),
+                });
+                const points = this.chains1[0].consumeEdge(); // consume the edge
+                if (this.chains1[0].edges.length == 0) {
+                    this.chains1.shift(); // remove the chain if it has no edges left
+                }
+                this.points += points; // accumulate points
+            }
+        }
+        // loop through chains type 2 (chains2[])
+        // and consume all edges until each chain has 2 edges left
+        for (let i = 0; i < this.chains2.length; i++) {
+            const chain = this.chains2[i];
+            while (chain.edges.length > 2) {
+            let edge = chain.edges[0];
+            moves.push({
+                row: edge.getRow(),
+                col: edge.getCol(),
+            });
+            const points = chain.consumeEdge(); // consume the edge
+            this.points += points; // accumulate points
+            }
+        }
+        return moves;
+    }
+
+    private rule4(safeMove:number = Math.floor(Math.random() * this.safeMoves.length)): Edge[] {
+        let moves: Edge[] = [];
+        // 1. If there are safeMoves, consume all remaining edges of the only chain1
+        // and consume the safeMoves[safeMove], finnish moves
+        if (this.safeMoves.length > 0 && this.chains1.length === 1) {
+            // Consome todas as arestas restantes da única chain1
+            while (this.chains1[0] && this.chains1[0].edges.length > 0) {
+            let edge = this.chains1[0].edges[0];
+            moves.push({ row: edge.getRow(), col: edge.getCol() });
+            const points = this.chains1[0].consumeEdge();
+            this.points += points;
+            if (this.chains1[0].edges.length === 0) {
+                this.chains1.shift();
+            }
+            }
+            // Consome o safeMove escolhido
+            if (this.safeMoves[safeMove]) {
+                moves.push(this.safeMoves[safeMove]);
+            this.forceEnd = true; // set rule 4 end flag
+            // Remove o safeMove consumido da lista
+            this.safeMoves.splice(safeMove, 1);
+            }
+            return moves;
+        }
+        // 2. If there are no safeMoves,
+        // check if the smallest chain3 has less than 5 faces,
+        // if so, consume all edges of the only chain1
+        else if (
+            this.safeMoves.length === 0 &&
+            this.chains3.length > 0 &&
+            this.chains1.length === 1
+        ) {
+            const smallestChain3 = this.chains3[0];
+            if (smallestChain3.faces.length < 5) {
+                while (this.chains1[0] && this.chains1[0].edges.length > 0) {
+                    let edge = this.chains1[0].edges[0];
+                    moves.push({ row: edge.getRow(), col: edge.getCol() });
+                    const points = this.chains1[0].consumeEdge();
+                    this.points += points;
+                    if (this.chains1[0].edges.length === 0) {
+                        this.chains1.shift();
+                    }
+                }
+            }
+        }
+        // if there are no safe moves and the smallest chain3 has 5 or more faces,
+        // then 
+        else {
+
+        }
+        return moves;
+    }
+}

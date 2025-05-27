@@ -126,7 +126,7 @@ import { Player } from "../types/PlayerType";
 export function playerGenerator(playerCount: number): Player[] {
   const players: Player[] = [];
   for (let i = 1; i <= playerCount; i++) {
-    players.push({ name: `Player ${i}`, points: 0, type: "human" , winner: false });
+    players.push({id:(i-1) , name: `Player ${i}`, points: 0, type: "human" , winner: false });
   }
   return players;
 }
