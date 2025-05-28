@@ -45,7 +45,7 @@ export default function Game(
                 initialBoard={board}
                 players={players}
                 setPlayers={setPlayers}
-                // gameOver={gameOver}
+                gameOver={gameOver}
                 setGameOver={setGameOver}
                 gameReset={gameReset}
                 playerTurn={playerTurn}
