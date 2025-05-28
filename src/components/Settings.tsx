@@ -30,7 +30,7 @@ export default function Settings(
     if (count > newPlayers.length) {
       // Adiciona jogadores
       for (let i = newPlayers.length; i < count; i++) {
-        newPlayers.push({ id: i, name: `Player ${i + 1}`, points: 0, type: "human" , winner: false });
+        newPlayers.push({ name: `Player ${i + 1}`, points: 0, type: "human" , winner: false });
       }
     } else {
       // Remove jogadores
