@@ -42,7 +42,7 @@ export default function Game(
           <div className="flex justify-self-center">
             <div className="mx-4 card p-3">
               <GameBoard
-                gameBoard={board}
+                initialBoard={board}
                 players={players}
                 setPlayers={setPlayers}
                 // gameOver={gameOver}
