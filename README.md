@@ -10,3 +10,13 @@ Dots and Boxes é um jogo para dois ou mais jogadores. Os jogadores se revezam c
 
 Você pode jogar diretamente no navegador acessando:  
 [http://gabriel-hbr.github.io/react-dots-boxes](http://gabriel-hbr.github.io/react-dots-boxes)
+
+## Membros
+
+<pre>
+NOME: ERICK EIJI NAGAO               RA: 21.00690-3
+NOME: IGOR IMPROTA MARTINEZ DA SILVA RA: 21.00834-5
+NOME: GABRIEL HENRIQUE BACA RADO     RA: 21.01286-5
+NOME: RYUSKE HIDEAKI SATO            RA: 21.00745-4
+NOME: VINICIUS DE OLIVEIRA BERTI     RA: 21.01219-9
+</pre>
