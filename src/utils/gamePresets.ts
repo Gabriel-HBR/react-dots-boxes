@@ -42,6 +42,6 @@ export const boardDefault: number[][] = [
 ];
 
 export const playerDefault: Player[] =  [
-  { id: 0, name: `Player 1`, points: 0, type: "human" , winner: false },
-  { id: 1, name: `Player 2`, points: 0, type: "human" , winner: false },
+  { name: `Player 1`, points: 0, type: "human" , winner: false },
+  { name: `Player 2`, points: 0, type: "human" , winner: false },
 ]
